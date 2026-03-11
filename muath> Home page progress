@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlickReview - Movie Reviews</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-logo">
+            <span class="logo-icon">🎬</span>
+            <a href="index.html">FlickReview</a>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html" class="active">Home</a></li>
+            <li><a href="add-review.html">Add Review</a></li>
+            <li><a href="top-rated.html">Top Rated</a></li>
+            <li><a href="genres.html">Genres</a></li>
+            <li><a href="about.html">About</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>Welcome to FlickReview</h1>
+            <p>Your go-to spot for honest movie reviews. Browse, rate, and share your thoughts on the latest films.</p>
+            <a href="add-review.html" class="btn-primary">Write a Review</a>
+        </div>
+    </header>
+
+    <!-- Featured Movies Section -->
+    <main>
+        <section class="section-featured">
+            <h2>Featured Movies</h2>
+            <div class="movie-grid">
+
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-color: #1a1a2e;">
+                        <span class="poster-text">🎥</span>
+                    </div>
+                    <div class="movie-info">
+                        <h3><a href="movie-oppenheimer.html">Oppenheimer</a></h3>
+                        <p class="movie-year">2023 &middot; Biography, Drama</p>
+                        <div class="movie-rating">
+                            <span class="stars">★★★★★</span>
+                            <span class="rating-num">4.8/5</span>
+                        </div>
+                        <p class="movie-desc">The story of the physicist who led the development of the atomic bomb during World War II.</p>
+                    </div>
+                </div>
+
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-color: #16213e;">
+                        <span class="poster-text">🎥</span>
+                    </div>
+                    <div class="movie-info">
+                        <h3><a href="movie-dune2.html">Dune: Part Two</a></h3>
+                        <p class="movie-year">2024 &middot; Sci-Fi, Adventure</p>
+                        <div class="movie-rating">
+                            <span class="stars">★★★★☆</span>
+                            <span class="rating-num">4.5/5</span>
+                        </div>
+                        <p class="movie-desc">Paul Atreides unites with the Fremen to seek revenge against those who destroyed his family.</p>
+                    </div>
+                </div>
+
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-color: #0f3460;">
+                        <span class="poster-text">🎥</span>
+                    </div>
+                    <div class="movie-info">
+                        <h3><a href="movie-batman.html">The Batman</a></h3>
+                        <p class="movie-year">2022 &middot; Action, Crime</p>
+                        <div class="movie-rating">
+                            <span class="stars">★★★★☆</span>
+                            <span class="rating-num">4.3/5</span>
+                        </div>
+                        <p class="movie-desc">Batman ventures into Gotham's underworld when a killer targets the city's elite.</p>
+                    </div>
+                </div>
+
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-color: #1a1a2e;">
+                        <span class="poster-text">🎥</span>
+                    </div>
+                    <div class="movie-info">
+                        <h3><a href="movie-interstellar.html">Interstellar</a></h3>
+                        <p class="movie-year">2014 &middot; Sci-Fi, Drama</p>
+                        <div class="movie-rating">
+                            <span class="stars">★★★★★</span>
+                            <span class="rating-num">4.9/5</span>
+                        </div>
+                        <p class="movie-desc">A team of explorers travel through a wormhole in space to ensure humanity's survival.</p>
+                    </div>
+                </div>
+
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-color: #16213e;">
+                        <span class="poster-text">🎥</span>
+                    </div>
+                    <div class="movie-info">
+                        <h3><a href="movie-joker.html">Joker</a></h3>
+                        <p class="movie-year">2019 &middot; Crime, Thriller</p>
+                        <div class="movie-rating">
+                            <span class="stars">★★★★☆</span>
+                            <span class="rating-num">4.4/5</span>
+                        </div>
+                        <p class="movie-desc">A mentally troubled comedian begins a slow descent into madness in Gotham City.</p>
+                    </div>
+                </div>
+
+                <div class="movie-card">
+                    <div class="movie-poster" style="background-color: #0f3460;">
+                        <span class="poster-text">🎥</span>
+                    </div>
+                    <div class="movie-info">
+                        <h3><a href="movie-parasite.html">Parasite</a></h3>
+                        <p class="movie-year">2019 &middot; Thriller, Drama</p>
+                        <div class="movie-rating">
+                            <span class="stars">★★★★★</span>
+                            <span class="rating-num">4.7/5</span>
+                        </div>
+                        <p class="movie-desc">Greed and class discrimination threaten a symbiotic relationship between two families.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Recent Reviews -->
+        <section class="section-reviews">
+            <h2>Recent Reviews</h2>
+            <div class="review-list">
+
+                <div class="review-item">
+                    <div class="review-header">
+                        <strong>Sean M.</strong>
+                        <span class="review-movie">Oppenheimer</span>
+                        <span class="review-stars">★★★★★</span>
+                    </div>
+                    <p>"Absolutely brilliant film. Nolan at his best. The cast was incredible and the pacing kept me hooked for the full 3 hours."</p>
+                </div>
+
+                <div class="review-item">
+                    <div class="review-header">
+                        <strong>Aoife K.</strong>
+                        <span class="review-movie">Dune: Part Two</span>
+                        <span class="review-stars">★★★★☆</span>
+                    </div>
+                    <p>"Visually stunning. The desert scenes were insane. Lost a star because the ending felt a bit rushed."</p>
+                </div>
+
+                <div class="review-item">
+                    <div class="review-header">
+                        <strong>Conor D.</strong>
+                        <span class="review-movie">Parasite</span>
+                        <span class="review-stars">★★★★★</span>
+                    </div>
+                    <p>"One of the best films I've ever seen. The twist halfway through completely changed everything. A must-watch."</p>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <p>&copy; 2026 FlickReview | WADT H1002 Team Project</p>
+    </footer>
+
+</body>
+</html>
