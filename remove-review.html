@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remove Reviews - FlickReview</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-logo">
+        <span class="logo-icon">🎬</span>
+        <a href="index.html">FlickReview</a>
+    </div>
+
+    <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="add-review.html">Add Review</a></li>
+        <li><a href="remove-review.html" class="active">Remove Review</a></li>
+        <li><a href="about.html">About</a></li>
+    </ul>
+</nav>
+
+<div class="form-container">
+    <h2>Manage Reviews</h2>
+
+    <div id="reviewList">
+        <p>Loading reviews...</p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const db = window.supabase.createClient(
+    "https://zemsurdjdqlgojcswffl.supabase.co",
+    "sb_publishable_yQE57yIA2dL5IY6Da5Hr0g_2LNb2Pbe"
+);
+
+let undoTimers = {}; // store pending deletions
+
+/* =========================
+   LOAD REVIEWS
+========================= */
+async function loadReviews() {
+    const container = document.getElementById("reviewList");
+
+    const { data, error } = await db
+        .from("reviews")
+        .select("*")
+        .order("review_id", { ascending: false });
+
+    if (error) {
+        container.innerHTML = "<p>Error loading reviews</p>";
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        container.innerHTML = "<p>No reviews found</p>";
+        return;
+    }
+
+    container.innerHTML = "";
+
+    data.forEach(review => {
+        const div = document.createElement("div");
+        div.className = "review-item";
+        div.id = `review-${review.review_id}`;
+
+        div.innerHTML = `
+            <div class="review-header">
+                <strong>${review.reviewer_name}</strong>
+                <span class="review-stars">⭐ ${review.rating}/10</span>
+            </div>
+
+            <p>${review.comment}</p>
+
+            <button onclick="startDelete('${review.review_id}')"
+                style="margin-top:10px;
+                background:#e63946;
+                color:white;
+                border:none;
+                padding:8px 12px;
+                border-radius:5px;
+                cursor:pointer;">
+                Delete
+            </button>
+        `;
+
+        container.appendChild(div);
+    });
+}
+
+/* =========================
+   DELETE WITH UNDO
+========================= */
+function startDelete(id) {
+    const element = document.getElementById(`review-${id}`);
+
+    // hide review (soft delete UI)
+    element.style.opacity = "0.4";
+
+    element.innerHTML += `
+        <div style="margin-top:10px; color:#f5c518;">
+            Deleting... <button onclick="undoDelete('${id}')"
+            style="margin-left:10px; padding:5px 8px; cursor:pointer;">
+            Undo
+            </button>
+        </div>
+    `;
+
+    // schedule permanent delete
+    undoTimers[id] = setTimeout(async () => {
+        await db.from("reviews").delete().eq("review_id", id);
+        loadReviews();
+    }, 5000); // 5 seconds to undo
+}
+
+/* =========================
+   UNDO DELETE
+========================= */
+function undoDelete(id) {
+    clearTimeout(undoTimers[id]);
+    delete undoTimers[id];
+    loadReviews();
+}
+
+loadReviews();
+</script>
+
+</body>
+</html>

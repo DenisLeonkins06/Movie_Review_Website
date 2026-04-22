@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlickReview - Movie Reviews</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-logo">
+            <span class="logo-icon">🎬</span>
+            <a href="index.html">FlickReview</a>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html" class="active">Home</a></li>
+            <li><a href="add-review.html">Add Review</a></li>
+            <li><a href="remove-review.html">Remove Review</a>
+            <li><a href="about.html">About</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>Welcome to <span class="highlight">FlickReview</span></h1>
+            <p>Your go-to spot for honest movie reviews. Browse, rate, and share your thoughts on the latest films.</p>
+            <div class="hero-buttons">
+                <a href="add-review.html" class="btn-primary">Write a Review</a>
+                <a href="#featured" class="btn-secondary">Browse Movies</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+
+        <!-- Featured Movies -->
+        <section class="section-featured" id="featured">
+            <h2>Featured Movies</h2>
+            <div class="movie-grid" id="movieGrid">
+                <p>Loading movies...</p>
+            </div>
+        </section>
+
+        <!-- Recent Reviews -->
+        <section class="section-reviews">
+            <h2>Recent Reviews</h2>
+            <div class="review-list" id="reviewList">
+                <div class="review-item">
+                    <p>Loading reviews...</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <p>&copy; 2026 FlickReview | WADT H1002 Team Project</p>
+    </footer>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = "https://zemsurdjdqlgojcswffl.supabase.co";
+        const supabaseKey = "sb_publishable_yQE57yIA2dL5IY6Da5Hr0g_2LNb2Pbe";
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        function toFiveScale(ratingOutOfTen) {
+            return Number(ratingOutOfTen || 0) / 2;
+        }
+
+        function makeStarsFromTen(ratingOutOfTen) {
+            const roundedFiveScale = Math.round(Number(ratingOutOfTen || 0) / 2);
+            const safeRating = Math.max(0, Math.min(5, roundedFiveScale));
+            return "★".repeat(safeRating) + "☆".repeat(5 - safeRating);
+        }
+
+        function getPosterColor(index) {
+            const colors = ["#1a1a2e", "#16213e", "#0f3460"];
+            return colors[index % colors.length];
+        }
+
+        function getAverageRatingOutOfTen(reviewsForMovie) {
+            if (!reviewsForMovie || reviewsForMovie.length === 0) return 0;
+
+            const total = reviewsForMovie.reduce((sum, review) => {
+                return sum + Number(review.rating || 0);
+            }, 0);
+
+            return total / reviewsForMovie.length;
+        }
+
+        async function loadMovies() {
+            const movieGrid = document.getElementById("movieGrid");
+
+            const { data: movies, error: movieError } = await supabaseClient
+                .from("movies")
+                .select("*")
+                .order("movie_id", { ascending: true });
+
+            if (movieError) {
+                movieGrid.innerHTML = `<p style="color:red;">${movieError.message}</p>`;
+                return;
+            }
+
+            if (!movies || movies.length === 0) {
+                movieGrid.innerHTML = `<p>No movies found.</p>`;
+                return;
+            }
+
+            const { data: reviews, error: reviewError } = await supabaseClient
+                .from("reviews")
+                .select("*");
+
+            if (reviewError) {
+                movieGrid.innerHTML = `<p style="color:red;">${reviewError.message}</p>`;
+                return;
+            }
+
+            movieGrid.innerHTML = "";
+
+            movies.forEach((movie, index) => {
+                const reviewsForMovie = reviews.filter(review => Number(review.movie_id) === Number(movie.movie_id));
+                const avgOutOfTen = getAverageRatingOutOfTen(reviewsForMovie);
+                const avgOutOfFive = toFiveScale(avgOutOfTen);
+
+                const movieCard = document.createElement("div");
+                movieCard.className = "movie-card";
+
+                movieCard.innerHTML = `
+                    <div class="movie-poster" style="background-color: ${getPosterColor(index)};">
+                        <span class="poster-text">🎥</span>
+                    </div>
+                    <div class="movie-info">
+                        <h3>
+                            <a href="movie-details.html?movie_id=${movie.movie_id}">
+                                ${movie.title}
+                            </a>
+                        </h3>
+                        <p class="movie-year">${movie.year} &middot; ${movie.genre}</p>
+                        <div class="movie-rating">
+                            <span class="stars">
+                                ${reviewsForMovie.length > 0 ? makeStarsFromTen(avgOutOfTen) : "☆☆☆☆☆"}
+                            </span>
+                            <span class="rating-num">
+                                ${reviewsForMovie.length > 0 ? avgOutOfFive.toFixed(1) + "/5" : "No reviews yet"}
+                            </span>
+                        </div>
+                        <p class="movie-desc">${movie.description}</p>
+                    </div>
+                `;
+
+                movieGrid.appendChild(movieCard);
+            });
+        }
+
+        async function loadReviews() {
+            const reviewList = document.getElementById("reviewList");
+
+            const { data: reviews, error: reviewError } = await supabaseClient
+                .from("reviews")
+                .select("*")
+                .order("review_id", { ascending: false });
+
+            if (reviewError) {
+                reviewList.innerHTML = `
+                    <div class="review-item">
+                        <p style="color:red;">${reviewError.message}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            if (!reviews || reviews.length === 0) {
+                reviewList.innerHTML = `
+                    <div class="review-item">
+                        <p>No reviews found yet.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const { data: movies, error: movieError } = await supabaseClient
+                .from("movies")
+                .select("movie_id, title");
+
+            if (movieError) {
+                reviewList.innerHTML = `
+                    <div class="review-item">
+                        <p style="color:red;">${movieError.message}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const movieMap = {};
+            movies.forEach(movie => {
+                movieMap[movie.movie_id] = movie.title;
+            });
+
+            reviewList.innerHTML = "";
+
+            reviews.forEach(review => {
+                const movieTitle = movieMap[review.movie_id] || "Unknown Movie";
+                const reviewOutOfFive = toFiveScale(review.rating);
+
+                const reviewCard = document.createElement("div");
+                reviewCard.className = "review-item";
+
+                reviewCard.innerHTML = `
+                    <div class="review-header">
+                        <strong>${review.reviewer_name}</strong>
+                        <span class="review-movie">
+                            <a href="movie-details.html?movie_id=${review.movie_id}">
+                                ${movieTitle}
+                            </a>
+                        </span>
+                        <span class="review-stars">${makeStarsFromTen(review.rating)}</span>
+                    </div>
+                    <p style="margin-bottom: 8px; color: #ccc;">${reviewOutOfFive.toFixed(1)}/5 (${review.rating}/10)</p>
+                    <p>"${review.comment}"</p>
+                `;
+
+                reviewList.appendChild(reviewCard);
+            });
+        }
+
+        loadMovies();
+        loadReviews();
+    </script>
+
+</body>
+</html>

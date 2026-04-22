@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Details - FlickReview</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-logo">
+            <span class="logo-icon">🎬</span>
+            <a href="index.html">FlickReview</a>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="add-review.html">Add Review</a></li>
+            <li><a href="remove-review.html" class="active">Remove Review</a></li>
+            <li><a href="about.html">About</a></li>
+        </ul>
+    </nav>
+
+    <!-- Movie Details Hero -->
+    <header class="hero" style="padding: 60px 40px;">
+        <div class="hero-content">
+            <h1 id="movieTitle">Loading...</h1>
+            <p id="movieSubtitle">Please wait while the movie details load.</p>
+            <div class="hero-buttons">
+                <a href="index.html" class="btn-secondary">← Back to Home</a>
+                <a href="add-review.html" class="btn-primary">Write a Review</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Movie Details Content -->
+    <main>
+        <section class="section-featured">
+            <h2>Movie Details</h2>
+
+            <div class="movie-card" style="max-width: 900px; margin: 0 auto;">
+                <div class="movie-poster" id="moviePoster" style="height: 220px; background-color: #1a1a2e;">
+                    <span class="poster-text">🎥</span>
+                </div>
+                <div class="movie-info">
+                    <h3 id="detailTitle">Loading...</h3>
+                    <p class="movie-year" id="detailYearGenre">Loading...</p>
+                    <div class="movie-rating">
+                        <span class="stars" id="detailStars">☆☆☆☆☆</span>
+                        <span class="rating-num" id="detailRatingNum">No rating yet</span>
+                    </div>
+                    <p class="movie-desc" id="detailDescription">Loading description...</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-reviews">
+            <h2>Reviews</h2>
+            <div class="review-list" id="reviewList">
+                <div class="review-item">
+                    <p>Loading reviews...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <p>&copy; 2026 FlickReview | WADT H1002 Team Project</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = "https://zemsurdjdqlgojcswffl.supabase.co";
+        const supabaseKey = "sb_publishable_yQE57yIA2dL5IY6Da5Hr0g_2LNb2Pbe";
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        const params = new URLSearchParams(window.location.search);
+        const movieId = params.get("movie_id");
+
+        // Converts a /10 rating to /5
+        function toFiveScale(ratingOutOfTen) {
+            return Number(ratingOutOfTen || 0) / 2;
+        }
+
+        // Makes stars from a /10 rating
+        function makeStarsFromTen(ratingOutOfTen) {
+            const fiveScale = Math.round(Number(ratingOutOfTen || 0) / 2);
+            const safeRating = Math.max(0, Math.min(5, fiveScale));
+            return "★".repeat(safeRating) + "☆".repeat(5 - safeRating);
+        }
+
+        // Average review rating in /10
+        function getAverageRatingOutOfTen(reviews) {
+            if (!reviews || reviews.length === 0) return 0;
+
+            const total = reviews.reduce((sum, review) => {
+                return sum + Number(review.rating || 0);
+            }, 0);
+
+            return total / reviews.length;
+        }
+
+        async function loadMovieDetails() {
+            if (!movieId) {
+                document.getElementById("movieTitle").textContent = "Movie not found";
+                document.getElementById("movieSubtitle").textContent = "No movie ID was provided.";
+                document.getElementById("detailTitle").textContent = "Movie not found";
+                document.getElementById("detailYearGenre").textContent = "";
+                document.getElementById("detailDescription").textContent = "No movie selected.";
+                return;
+            }
+
+            const { data: movie, error } = await supabaseClient
+                .from("movies")
+                .select("*")
+                .eq("movie_id", movieId)
+                .single();
+
+            if (error || !movie) {
+                document.getElementById("movieTitle").textContent = "Error loading movie";
+                document.getElementById("movieSubtitle").textContent = "Could not find this movie.";
+                document.getElementById("detailTitle").textContent = "Error loading movie";
+                document.getElementById("detailYearGenre").textContent = "";
+                document.getElementById("detailDescription").textContent = "Movie details could not be loaded.";
+                return;
+            }
+
+            document.getElementById("movieTitle").textContent = movie.title;
+            document.getElementById("movieSubtitle").textContent = movie.genre + " · " + movie.year;
+            document.getElementById("detailTitle").textContent = movie.title;
+            document.getElementById("detailYearGenre").innerHTML = `${movie.year} &middot; ${movie.genre}`;
+            document.getElementById("detailDescription").textContent = movie.description;
+        }
+
+        async function loadMovieReviews() {
+            const reviewList = document.getElementById("reviewList");
+
+            const { data: reviews, error } = await supabaseClient
+                .from("reviews")
+                .select("*")
+                .eq("movie_id", movieId)
+                .order("review_id", { ascending: false });
+
+            if (error) {
+                reviewList.innerHTML = `
+                    <div class="review-item">
+                        <p style="color:red;">${error.message}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const avgRatingOutOfTen = getAverageRatingOutOfTen(reviews);
+            const avgRatingOutOfFive = toFiveScale(avgRatingOutOfTen);
+
+            if (reviews && reviews.length > 0) {
+                document.getElementById("detailStars").textContent = makeStarsFromTen(avgRatingOutOfTen);
+                document.getElementById("detailRatingNum").textContent =
+                    avgRatingOutOfFive.toFixed(1) + "/5";
+            } else {
+                document.getElementById("detailStars").textContent = "☆☆☆☆☆";
+                document.getElementById("detailRatingNum").textContent = "No reviews yet";
+            }
+
+            if (!reviews || reviews.length === 0) {
+                reviewList.innerHTML = `
+                    <div class="review-item">
+                        <p>No reviews for this movie yet.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            reviewList.innerHTML = "";
+
+            reviews.forEach(review => {
+                const reviewCard = document.createElement("div");
+                reviewCard.className = "review-item";
+
+                const reviewRatingOutOfFive = toFiveScale(review.rating);
+
+                reviewCard.innerHTML = `
+                    <div class="review-header">
+                        <strong>${review.reviewer_name}</strong>
+                        <span class="review-movie">Review</span>
+                        <span class="review-stars">${makeStarsFromTen(review.rating)}</span>
+                    </div>
+                    <p style="margin-bottom: 8px; color: #ccc;">${reviewRatingOutOfFive.toFixed(1)}/5 (${review.rating}/10)</p>
+                    <p>"${review.comment}"</p>
+                `;
+
+                reviewList.appendChild(reviewCard);
+            });
+        }
+
+        loadMovieDetails();
+        loadMovieReviews();
+    </script>
+
+</body>
+</html>

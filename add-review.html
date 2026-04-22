@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Review - FlickReview</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="nav-logo">
+        <span class="logo-icon">🎬</span>
+        <a href="index.html">FlickReview</a>
+    </div>
+
+    <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="add-review.html" class="active">Add Review</a></li>
+        <li><a href="remove-review.html">Remove Review</a></li>
+        <li><a href="about.html">About</a></li>
+    </ul>
+</nav>
+
+<!-- FORM -->
+<div class="form-container">
+    <h2>Add a Movie Review</h2>
+
+    <form id="reviewForm">
+
+        <div class="form-group">
+            <label>Your Name</label>
+            <input type="text" id="name" required>
+        </div>
+
+        <div class="form-group">
+            <label>Select Movie</label>
+            <select id="movie" required>
+                <option value="">Loading movies...</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Rating (1–10)</label>
+            <input type="number" id="rating" min="1" max="10" required>
+        </div>
+
+        <div class="form-group">
+            <label>Comment</label>
+            <textarea id="comment" rows="4" required></textarea>
+        </div>
+
+        <button type="submit" class="btn-primary form-submit">
+            Submit Review
+        </button>
+
+    </form>
+</div>
+
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const db = window.supabase.createClient(
+    "https://zemsurdjdqlgojcswffl.supabase.co",
+    "sb_publishable_yQE57yIA2dL5IY6Da5Hr0g_2LNb2Pbe"
+);
+
+/* =========================
+   LOAD MOVIES
+========================= */
+async function loadMovies() {
+    const select = document.getElementById("movie");
+
+    const { data, error } = await db
+        .from("movies")
+        .select("movie_id, title")
+        .order("title");
+
+    if (error) {
+        console.log(error);
+        select.innerHTML = "<option>Error loading movies</option>";
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        select.innerHTML = "<option>No movies found</option>";
+        return;
+    }
+
+    select.innerHTML = '<option value="">-- Select Movie --</option>';
+
+    data.forEach(movie => {
+        const option = document.createElement("option");
+        option.value = movie.movie_id;
+        option.textContent = movie.title;
+        select.appendChild(option);
+    });
+}
+
+/* =========================
+   SUBMIT REVIEW (FIXED)
+========================= */
+document.getElementById("reviewForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("name").value;
+    const movieId = document.getElementById("movie").value;
+    const rating = document.getElementById("rating").value;
+    const comment = document.getElementById("comment").value;
+
+    if (!movieId) {
+        alert("Please select a movie");
+        return;
+    }
+
+    const { error } = await db
+        .from("reviews")
+        .insert([{
+            reviewer_name: name,
+            movie_id: Number(movieId),
+            rating: Number(rating),
+            comment: comment
+        }]);
+
+    if (error) {
+        console.log(error);
+        alert("Error: " + error.message);
+    } else {
+        alert("Review added successfully!");
+        location.reload();
+    }
+});
+
+loadMovies();
+</script>
+
+</body>
+</html>
